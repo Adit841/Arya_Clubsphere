@@ -15,8 +15,17 @@ public class UserService {
         User user = userDAO.authenticate(usernameOrEmail.trim());
         if (user != null) {
             if (PasswordUtil.checkPassword(plainPassword, user.getPasswordHash())) {
-                // If user logged in with a non-standard hash or seed placeholder, upgrade it to a standard BCrypt hash
-                if (!BCrypt.checkpw(plainPassword, user.getPasswordHash())) {
+                // If user logged in with a non-standard hash or legacy seed placeholder, safely upgrade it to a standard BCrypt hash
+                boolean isStandardBcrypt = false;
+                try {
+                    String hash = user.getPasswordHash();
+                    if (hash != null && (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$"))) {
+                        isStandardBcrypt = BCrypt.checkpw(plainPassword, hash);
+                    }
+                } catch (Exception ignored) {
+                    isStandardBcrypt = false;
+                }
+                if (!isStandardBcrypt) {
                     changePassword(user.getId(), plainPassword);
                 }
                 return user;
