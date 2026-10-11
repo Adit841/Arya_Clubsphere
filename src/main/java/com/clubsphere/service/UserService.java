@@ -47,9 +47,17 @@ public class UserService {
     }
 
     public boolean registerUser(User user, String plainPassword) {
-        if (userDAO.findByUsername(user.getUsername()) != null) {
+        if (user == null || user.getUsername() == null || user.getEmail() == null || plainPassword == null) {
             return false;
         }
+        if (userDAO.findByUsername(user.getUsername().trim()) != null) {
+            return false;
+        }
+        if (userDAO.findByEmail(user.getEmail().trim()) != null) {
+            return false;
+        }
+        user.setUsername(user.getUsername().trim());
+        user.setEmail(user.getEmail().trim());
         user.setPasswordHash(PasswordUtil.hashPassword(plainPassword));
         return userDAO.create(user);
     }
@@ -65,6 +73,10 @@ public class UserService {
 
     public boolean changeRole(int userId, String role) {
         return userDAO.updateRole(userId, role);
+    }
+
+    public boolean changeStatus(int userId, String status) {
+        return userDAO.updateStatus(userId, status);
     }
 
     public int countStudents() {

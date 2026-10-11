@@ -60,6 +60,8 @@ public class AdminServlet extends HttpServlet {
             toggleClubStatus(req, resp);
         } else if ("/user/change-role".equals(path)) {
             changeUserRole(req, resp);
+        } else if ("/user/toggle-status".equals(path)) {
+            toggleUserStatus(req, resp);
         } else if ("/user/create".equals(path)) {
             createUser(req, resp);
         } else {
@@ -180,10 +182,34 @@ public class AdminServlet extends HttpServlet {
         String userIdStr = req.getParameter("userId");
         String newRole = req.getParameter("newRole");
         if (userIdStr != null && newRole != null) {
-            int uid = Integer.parseInt(userIdStr);
-            userService.changeRole(uid, newRole);
+            try {
+                int uid = Integer.parseInt(userIdStr);
+                userService.changeRole(uid, newRole);
+                resp.sendRedirect(req.getContextPath() + "/admin/users?message=User+role+updated+successfully");
+                return;
+            } catch (NumberFormatException ignored) {}
         }
-        resp.sendRedirect(req.getContextPath() + "/admin/users?message=User+role+updated+successfully");
+        resp.sendRedirect(req.getContextPath() + "/admin/users?error=Invalid+user+role+update+request");
+    }
+
+    private void toggleUserStatus(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String userIdStr = req.getParameter("userId");
+        String currentStatus = req.getParameter("currentStatus");
+        if (userIdStr != null) {
+            try {
+                int uid = Integer.parseInt(userIdStr);
+                User currentUser = (User) req.getSession().getAttribute("currentUser");
+                if (currentUser != null && currentUser.getId() == uid) {
+                    resp.sendRedirect(req.getContextPath() + "/admin/users?error=You+cannot+deactivate+your+own+administrator+account");
+                    return;
+                }
+                String newStatus = "ACTIVE".equalsIgnoreCase(currentStatus) ? "INACTIVE" : "ACTIVE";
+                userService.changeStatus(uid, newStatus);
+                resp.sendRedirect(req.getContextPath() + "/admin/users?message=User+account+status+updated+successfully");
+                return;
+            } catch (NumberFormatException ignored) {}
+        }
+        resp.sendRedirect(req.getContextPath() + "/admin/users?error=Invalid+user+specified");
     }
 
     private void createUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -196,18 +222,30 @@ public class AdminServlet extends HttpServlet {
         String phone = req.getParameter("phone");
         String department = req.getParameter("department");
 
+        if (username == null || username.trim().isEmpty() ||
+            email == null || email.trim().isEmpty() ||
+            password == null || password.trim().isEmpty() ||
+            fullName == null || fullName.trim().isEmpty()) {
+            resp.sendRedirect(req.getContextPath() + "/admin/users?error=Please+fill+in+all+required+fields");
+            return;
+        }
+
         User u = new User();
-        u.setUsername(username);
-        u.setEmail(email);
-        u.setFullName(fullName);
-        u.setRole(role);
-        u.setStudentId(studentId);
-        u.setPhone(phone);
-        u.setDepartment(department);
+        u.setUsername(username.trim());
+        u.setEmail(email.trim());
+        u.setFullName(fullName.trim());
+        u.setRole(role != null ? role.trim() : "STUDENT");
+        u.setStudentId(studentId != null ? studentId.trim() : null);
+        u.setPhone(phone != null ? phone.trim() : null);
+        u.setDepartment(department != null ? department.trim() : null);
         u.setStatus("ACTIVE");
 
-        userService.registerUser(u, password);
-        resp.sendRedirect(req.getContextPath() + "/admin/users?message=User+created+successfully");
+        boolean created = userService.registerUser(u, password.trim());
+        if (created) {
+            resp.sendRedirect(req.getContextPath() + "/admin/users?message=User+account+created+successfully");
+        } else {
+            resp.sendRedirect(req.getContextPath() + "/admin/users?error=Failed+to+create+user.+Username+or+email+already+exists");
+        }
     }
 
     private void listEvents(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
