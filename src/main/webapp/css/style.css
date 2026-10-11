@@ -214,3 +214,14 @@ footer.app-footer {
   font-size: 0.875rem;
   color: var(--text-muted);
 }
+
+.btn-white {
+  background-color: #ffffff;
+  color: var(--text-main);
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-white:hover {
+  background-color: #f1f5f9;
+  border-color: #cbd5e1;
+}

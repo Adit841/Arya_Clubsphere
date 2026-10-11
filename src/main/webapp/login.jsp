@@ -48,22 +48,29 @@
                     </div>
                 </c:if>
 
-                <form action="${pageContext.request.contextPath}/login" method="post">
+                <form action="${pageContext.request.contextPath}/login" method="post" id="loginForm" novalidate>
+                    <c:if test="${not empty param.redirect}">
+                        <input type="hidden" name="redirect" value="<c:out value='${param.redirect}'/>">
+                    </c:if>
+
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold text-secondary">Username or College Email</label>
+                        <label for="username" class="form-label small fw-semibold text-secondary">Username or College Email</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-person"></i></span>
-                            <input type="text" name="username" class="form-control border-start-0" placeholder="e.g. admin or dev.kumar" required autofocus>
+                            <span class="input-group-text bg-white border-end-0 text-muted" id="userIcon"><i class="bi bi-person"></i></span>
+                            <input type="text" id="username" name="username" class="form-control border-start-0" placeholder="e.g. admin or dev.kumar" autocomplete="username" aria-describedby="userIcon" required autofocus>
                         </div>
                     </div>
 
                     <div class="mb-4">
-                        <div class="d-flex justify-content-between">
-                            <label class="form-label small fw-semibold text-secondary">Password</label>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <label for="password" class="form-label small fw-semibold text-secondary mb-1">Password</label>
                         </div>
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-lock"></i></span>
-                            <input type="password" name="password" class="form-control border-start-0" placeholder="••••••••" required>
+                            <span class="input-group-text bg-white border-end-0 text-muted" id="lockIcon"><i class="bi bi-lock"></i></span>
+                            <input type="password" id="password" name="password" class="form-control border-start-0 border-end-0" placeholder="••••••••" autocomplete="current-password" aria-describedby="lockIcon" required>
+                            <button class="btn btn-outline-secondary border-start-0 bg-white text-muted" type="button" id="togglePasswordBtn" aria-label="Toggle password visibility" title="Show or hide password">
+                                <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -74,12 +81,27 @@
 
                 <!-- Demo quick access helper -->
                 <div class="mt-3 p-3 bg-light rounded-3 border small">
-                    <div class="fw-bold text-secondary mb-2 text-uppercase" style="font-size: 0.7rem;">Quick Login Credentials:</div>
-                    <div class="d-flex flex-column gap-1 text-muted" style="font-size: 0.8rem;">
-                        <div><strong>Admin:</strong> <code>admin</code> / <code>password123</code></div>
-                        <div><strong>Club Head:</strong> <code>head_coding</code> / <code>password123</code></div>
-                        <div><strong>Club Member:</strong> <code>member_coding_1</code> / <code>password123</code></div>
-                        <div><strong>Student:</strong> <code>student_1</code> / <code>password123</code></div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold text-secondary text-uppercase" style="font-size: 0.7rem;">Quick Login Credentials:</span>
+                        <span class="text-muted" style="font-size: 0.68rem;"><i class="bi bi-cursor-fill me-1"></i>Click to autofill</span>
+                    </div>
+                    <div class="d-grid gap-1">
+                        <button type="button" class="btn btn-sm btn-white border text-start d-flex justify-content-between align-items-center py-1 px-2 quick-fill-btn" data-user="admin" data-pass="password123">
+                            <span><strong>Admin:</strong> <code>admin</code></span>
+                            <span class="badge bg-danger-subtle text-danger">Autofill</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-white border text-start d-flex justify-content-between align-items-center py-1 px-2 quick-fill-btn" data-user="head_coding" data-pass="password123">
+                            <span><strong>Club Head:</strong> <code>head_coding</code></span>
+                            <span class="badge bg-warning-subtle text-dark">Autofill</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-white border text-start d-flex justify-content-between align-items-center py-1 px-2 quick-fill-btn" data-user="member_coding_1" data-pass="password123">
+                            <span><strong>Club Member:</strong> <code>member_coding_1</code></span>
+                            <span class="badge bg-success-subtle text-success">Autofill</span>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-white border text-start d-flex justify-content-between align-items-center py-1 px-2 quick-fill-btn" data-user="student_1" data-pass="password123">
+                            <span><strong>Student:</strong> <code>student_1</code></span>
+                            <span class="badge bg-primary-subtle text-primary">Autofill</span>
+                        </button>
                     </div>
                 </div>
 
@@ -95,5 +117,36 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Password visibility toggle
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    const passwordInput = document.getElementById('password');
+    const togglePasswordIcon = document.getElementById('togglePasswordIcon');
+
+    if (togglePasswordBtn && passwordInput && togglePasswordIcon) {
+        togglePasswordBtn.addEventListener('click', function () {
+            const isPassword = passwordInput.getAttribute('type') === 'password';
+            passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+            togglePasswordIcon.className = isPassword ? 'bi bi-eye-slash text-primary' : 'bi bi-eye';
+            togglePasswordBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+        });
+    }
+
+    // Quick login credential autofill
+    document.querySelectorAll('.quick-fill-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const usernameInput = document.getElementById('username');
+            const user = this.getAttribute('data-user');
+            const pass = this.getAttribute('data-pass');
+            if (usernameInput && passwordInput) {
+                usernameInput.value = user;
+                passwordInput.value = pass;
+                passwordInput.setAttribute('type', 'password');
+                if (togglePasswordIcon) togglePasswordIcon.className = 'bi bi-eye';
+                usernameInput.focus();
+            }
+        });
+    });
+</script>
 </body>
 </html>
