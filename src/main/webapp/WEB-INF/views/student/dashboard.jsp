@@ -21,16 +21,16 @@
 
     <main class="main-content">
         <!-- Student Welcome Banner -->
-        <div class="card card-custom p-4 p-md-5 mb-4 border-0 text-white shadow-sm" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);">
+        <div class="card card-custom p-4 p-md-5 mb-4 border-0 text-white shadow-sm" style="background: linear-gradient(135deg, #E31828 0%, #B7101E 100%);">
             <div class="row align-items-center">
                 <div class="col-md-8">
-                    <span class="badge bg-white text-primary fw-bold mb-2">Student Dashboard</span>
+                    <span class="badge bg-white text-danger fw-bold mb-2">Student Dashboard</span>
                     <h2 class="fw-bold mb-2">Welcome, ${sessionScope.currentUser.fullName}!</h2>
                     <p class="lead opacity-75 mb-3" style="font-size: 1.05rem;">
                         Explore 26 campus clubs, join high-impact hackathons, participate in cultural events, and keep track of your event tickets.
                     </p>
                     <div class="d-flex flex-wrap gap-2">
-                        <a href="${pageContext.request.contextPath}/events" class="btn btn-light fw-semibold text-primary px-3">
+                        <a href="${pageContext.request.contextPath}/events" class="btn btn-light fw-semibold text-danger px-3">
                             <i class="bi bi-compass me-1"></i> Browse Upcoming Events
                         </a>
                         <a href="${pageContext.request.contextPath}/student/registrations" class="btn btn-outline-light fw-semibold px-3">

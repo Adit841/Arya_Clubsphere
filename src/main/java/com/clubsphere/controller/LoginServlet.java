@@ -37,6 +37,7 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String usernameOrEmail = req.getParameter("username");
         String password = req.getParameter("password");
+        String redirect = req.getParameter("redirect");
 
         if (usernameOrEmail == null || usernameOrEmail.trim().isEmpty() || password == null || password.trim().isEmpty()) {
             req.setAttribute("errorMessage", "Please provide both username/email and password.");
@@ -60,13 +61,30 @@ public class LoginServlet extends HttpServlet {
             }
         }
 
-        // Start session
+        // Session fixation mitigation: invalidate old session before creating a fresh authenticated session
+        HttpSession oldSession = req.getSession(false);
+        if (oldSession != null) {
+            oldSession.invalidate();
+        }
+
+        // Start fresh authenticated session
         HttpSession session = req.getSession(true);
         session.setAttribute("currentUser", user);
         session.setAttribute("unreadCount", notificationService.getUnreadCount(user.getId()));
 
         // Audit log
         reportService.logActivity(user.getId(), "LOGIN", "User logged in with role " + user.getRole(), req.getRemoteAddr());
+
+        // Validate redirect parameter to ensure safe internal destination and prevent open redirect vulnerabilities
+        if (redirect != null && !redirect.trim().isEmpty()) {
+            String trimmedRedirect = redirect.trim();
+            String contextPath = req.getContextPath();
+            if ((trimmedRedirect.startsWith(contextPath + "/") || (trimmedRedirect.startsWith("/") && !trimmedRedirect.startsWith("//")))
+                    && !trimmedRedirect.contains("://") && !trimmedRedirect.toLowerCase().startsWith("javascript:")) {
+                resp.sendRedirect(trimmedRedirect);
+                return;
+            }
+        }
 
         redirectToDashboard(user, req, resp);
     }

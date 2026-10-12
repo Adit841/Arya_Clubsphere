@@ -15,8 +15,17 @@ public class UserService {
         User user = userDAO.authenticate(usernameOrEmail.trim());
         if (user != null) {
             if (PasswordUtil.checkPassword(plainPassword, user.getPasswordHash())) {
-                // If user logged in with a non-standard hash or seed placeholder, upgrade it to a standard BCrypt hash
-                if (!BCrypt.checkpw(plainPassword, user.getPasswordHash())) {
+                // If user logged in with a non-standard hash or legacy seed placeholder, safely upgrade it to a standard BCrypt hash
+                boolean isStandardBcrypt = false;
+                try {
+                    String hash = user.getPasswordHash();
+                    if (hash != null && (hash.startsWith("$2a$") || hash.startsWith("$2b$") || hash.startsWith("$2y$"))) {
+                        isStandardBcrypt = BCrypt.checkpw(plainPassword, hash);
+                    }
+                } catch (Exception ignored) {
+                    isStandardBcrypt = false;
+                }
+                if (!isStandardBcrypt) {
                     changePassword(user.getId(), plainPassword);
                 }
                 return user;
@@ -38,9 +47,17 @@ public class UserService {
     }
 
     public boolean registerUser(User user, String plainPassword) {
-        if (userDAO.findByUsername(user.getUsername()) != null) {
+        if (user == null || user.getUsername() == null || user.getEmail() == null || plainPassword == null) {
             return false;
         }
+        if (userDAO.findByUsername(user.getUsername().trim()) != null) {
+            return false;
+        }
+        if (userDAO.findByEmail(user.getEmail().trim()) != null) {
+            return false;
+        }
+        user.setUsername(user.getUsername().trim());
+        user.setEmail(user.getEmail().trim());
         user.setPasswordHash(PasswordUtil.hashPassword(plainPassword));
         return userDAO.create(user);
     }
@@ -56,6 +73,10 @@ public class UserService {
 
     public boolean changeRole(int userId, String role) {
         return userDAO.updateRole(userId, role);
+    }
+
+    public boolean changeStatus(int userId, String status) {
+        return userDAO.updateStatus(userId, status);
     }
 
     public int countStudents() {

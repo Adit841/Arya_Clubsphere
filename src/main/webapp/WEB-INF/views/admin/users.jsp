@@ -37,6 +37,13 @@
             </div>
         </c:if>
 
+        <c:if test="${not empty param.error}">
+            <div class="alert alert-danger py-2 small alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i> ${param.error}
+                <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+            </div>
+        </c:if>
+
         <!-- Role Filter Tabs -->
         <div class="mb-3 d-flex gap-2">
             <a href="${pageContext.request.contextPath}/admin/users" class="btn btn-sm ${empty selectedRole or selectedRole == 'ALL' ? 'btn-primary' : 'btn-outline-secondary'}">All Users</a>
@@ -56,7 +63,8 @@
                             <th>Department</th>
                             <th>Current Role</th>
                             <th>Status</th>
-                            <th>Action: Change Role</th>
+                            <th>Role Management</th>
+                            <th>Account Status</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -79,7 +87,7 @@
                                 <td>
                                     <form action="${pageContext.request.contextPath}/admin/user/change-role" method="post" class="d-flex gap-2">
                                         <input type="hidden" name="userId" value="${u.id}">
-                                        <select name="newRole" class="form-select form-select-sm" style="width: 140px;">
+                                        <select name="newRole" class="form-select form-select-sm" style="width: 140px;" aria-label="Change role for ${u.username}">
                                             <option value="ADMIN" ${u.role == 'ADMIN' ? 'selected' : ''}>ADMIN</option>
                                             <option value="CLUB_HEAD" ${u.role == 'CLUB_HEAD' ? 'selected' : ''}>CLUB_HEAD</option>
                                             <option value="CLUB_MEMBER" ${u.role == 'CLUB_MEMBER' ? 'selected' : ''}>CLUB_MEMBER</option>
@@ -87,6 +95,22 @@
                                         </select>
                                         <button type="submit" class="btn btn-sm btn-outline-primary py-0">Update</button>
                                     </form>
+                                </td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${sessionScope.currentUser.id == u.id}">
+                                            <span class="badge bg-light text-muted border py-1 px-2" title="Current session user">Current User</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <form action="${pageContext.request.contextPath}/admin/user/toggle-status" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to ${u.status == 'ACTIVE' ? 'deactivate' : 'activate'} user ${u.username}?');">
+                                                <input type="hidden" name="userId" value="${u.id}">
+                                                <input type="hidden" name="currentStatus" value="${u.status}">
+                                                <button type="submit" class="btn btn-sm ${u.status == 'ACTIVE' ? 'btn-outline-danger' : 'btn-outline-success'} py-0" title="${u.status == 'ACTIVE' ? 'Deactivate user account' : 'Activate user account'}">
+                                                    <i class="bi ${u.status == 'ACTIVE' ? 'bi-person-x' : 'bi-person-check'} me-1"></i>${u.status == 'ACTIVE' ? 'Deactivate' : 'Activate'}
+                                                </button>
+                                            </form>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -109,25 +133,27 @@
             <form action="${pageContext.request.contextPath}/admin/user/create" method="post">
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Username</label>
-                        <input type="text" name="username" class="form-control" required>
+                        <label for="newUsername" class="form-label small fw-semibold">Username <span class="text-danger">*</span></label>
+                        <input type="text" id="newUsername" name="username" class="form-control" placeholder="e.g. dev.sharma" pattern="^[a-zA-Z0-9._-]{3,30}$" title="3-30 letters, numbers, dots, underscores or hyphens" required>
+                        <div class="form-text" style="font-size: 0.75rem;">Letters, numbers, underscores, or dots (3-30 characters)</div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Full Name</label>
-                        <input type="text" name="fullName" class="form-control" required>
+                        <label for="newFullName" class="form-label small fw-semibold">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" id="newFullName" name="fullName" class="form-control" placeholder="e.g. Dev Sharma" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Email Address</label>
-                        <input type="email" name="email" class="form-control" required>
+                        <label for="newEmail" class="form-label small fw-semibold">Email Address <span class="text-danger">*</span></label>
+                        <input type="email" id="newEmail" name="email" class="form-control" placeholder="e.g. dev.sharma@aryacollege.in" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-semibold">Initial Password</label>
-                        <input type="password" name="password" class="form-control" value="password123" required>
+                        <label for="newPassword" class="form-label small fw-semibold">Initial Password <span class="text-danger">*</span></label>
+                        <input type="password" id="newPassword" name="password" class="form-control" value="password123" minlength="6" required>
+                        <div class="form-text" style="font-size: 0.75rem;">Minimum 6 characters. Default is <code>password123</code></div>
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Role</label>
-                            <select name="role" class="form-select" required>
+                            <label for="newRole" class="form-label small fw-semibold">Role <span class="text-danger">*</span></label>
+                            <select id="newRole" name="role" class="form-select" required>
                                 <option value="STUDENT">STUDENT</option>
                                 <option value="CLUB_MEMBER">CLUB_MEMBER</option>
                                 <option value="CLUB_HEAD">CLUB_HEAD</option>
@@ -135,18 +161,18 @@
                             </select>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Student / Employee ID</label>
-                            <input type="text" name="studentId" class="form-control" placeholder="23ARYACS..." required>
+                            <label for="newStudentId" class="form-label small fw-semibold">Student / Employee ID</label>
+                            <input type="text" id="newStudentId" name="studentId" class="form-control" placeholder="23ARYACS...">
                         </div>
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Phone</label>
-                            <input type="text" name="phone" class="form-control">
+                            <label for="newPhone" class="form-label small fw-semibold">Phone</label>
+                            <input type="text" id="newPhone" name="phone" class="form-control" placeholder="9876543210">
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-semibold">Department</label>
-                            <input type="text" name="department" class="form-control" placeholder="Computer Science">
+                            <label for="newDepartment" class="form-label small fw-semibold">Department</label>
+                            <input type="text" id="newDepartment" name="department" class="form-control" placeholder="Computer Science">
                         </div>
                     </div>
                 </div>

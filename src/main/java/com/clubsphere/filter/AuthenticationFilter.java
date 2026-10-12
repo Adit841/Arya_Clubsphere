@@ -52,7 +52,12 @@ public class AuthenticationFilter implements Filter {
 
         // If trying to access protected areas while not logged in
         if (!isPublicResource && currentUser == null) {
-            httpResponse.sendRedirect(contextPath + "/login.jsp?error=Please+login+to+continue");
+            String returnUrl = uri;
+            if (httpRequest.getQueryString() != null) {
+                returnUrl += "?" + httpRequest.getQueryString();
+            }
+            httpResponse.sendRedirect(contextPath + "/login.jsp?error=Please+login+to+continue&redirect="
+                    + java.net.URLEncoder.encode(returnUrl, java.nio.charset.StandardCharsets.UTF_8));
             return;
         }
 
@@ -84,14 +89,7 @@ public class AuthenticationFilter implements Filter {
                 }
             }
 
-            // 4. Student area protection
-            if (path.startsWith("/student/") || path.startsWith("/student")) {
-                // Students and above can access student dashboard/registrations
-                if (currentUser == null) {
-                    httpResponse.sendRedirect(contextPath + "/login.jsp");
-                    return;
-                }
-            }
+            // 4. Student area protection: all authenticated users have access to student portal
         }
 
         chain.doFilter(request, response);

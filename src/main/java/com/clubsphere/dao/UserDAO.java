@@ -70,6 +70,25 @@ public class UserDAO {
         return null;
     }
 
+    public User findByEmail(String email) {
+        String sql = "SELECT u.*, c.id AS managed_club_id, c.name AS managed_club_name " +
+                     "FROM users u " +
+                     "LEFT JOIN clubs c ON c.head_user_id = u.id " +
+                     "WHERE u.email = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, email);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapUserWithClub(rs);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public List<User> findAll() {
         List<User> list = new ArrayList<>();
         String sql = "SELECT u.*, c.id AS managed_club_id, c.name AS managed_club_name " +
@@ -177,6 +196,19 @@ public class UserDAO {
         try (Connection conn = DBUtil.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, role);
+            ps.setInt(2, userId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateStatus(int userId, String status) {
+        String sql = "UPDATE users SET status = ? WHERE id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, status);
             ps.setInt(2, userId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
