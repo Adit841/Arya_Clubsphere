@@ -6,6 +6,8 @@ The hosted demo can take a minute to open on the first visit while the server wa
 
 **Demo logins** (admin, club head, club member, student): see [`docs/demo-accounts.md`](docs/demo-accounts.md).
 
+**Demo video:** [ClubSphere walkthrough on Google Drive](https://drive.google.com/file/d/1o5umJYwDw9k0V-BGlIcvP0j_xMHfoaXU/view) · notes in [`docs/demo-video.md`](docs/demo-video.md).
+
 **One platform for clubs, events, and campus activities.** Arya College ClubSphere is a web-based club and event management system for Arya College of Engineering & IT, Jaipur. It centralizes clubs, memberships, events, QR registration, tasks, and notifications for administrators, club heads, club members, and students.
 
 Built with **Java 17, JSP, Servlets, JDBC, MySQL 8, Maven, and Apache Tomcat 10.1**.
@@ -301,6 +303,7 @@ On Render, set the same `DB_*` variables plus `APP_BASE_URL` to the public `http
 |---|---|
 | Documentation index | [`docs/README.md`](docs/README.md) |
 | Demo logins | [`docs/demo-accounts.md`](docs/demo-accounts.md) |
+| Demo video | [`docs/demo-video.md`](docs/demo-video.md) |
 | Architecture | [`docs/architecture.md`](docs/architecture.md) |
 | Authentication module | [`docs/authentication-and-user-management.md`](docs/authentication-and-user-management.md) |
 | Club Management | [`docs/club-management.md`](docs/club-management.md) |

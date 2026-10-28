@@ -7,6 +7,8 @@ The hosted demo can take a minute to open on the first visit while the server wa
 
 **Live demo:** [event-management-uylc.onrender.com](https://event-management-uylc.onrender.com/)
 
+**Demo video:** [ClubSphere walkthrough on Google Drive](https://drive.google.com/file/d/1o5umJYwDw9k0V-BGlIcvP0j_xMHfoaXU/view)
+
 Password for every seed user: `password123`
 
 These accounts are for evaluation only. Do not reuse this password in production.
